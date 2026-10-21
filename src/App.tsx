@@ -4,14 +4,6 @@ import { siteConfig } from "./config";
 import { frames, residenceIds, residenceImages } from "./gallery";
 import { copy, isLang, langMeta, langs, type Lang } from "./i18n";
 
-const chapters = [
-  { path: "building", image: "/media/living-sea-tv.jpg", lead: "buildingLead" },
-  { path: "residences", image: "/media/living-sea.jpg", lead: "residencesLead" },
-  { path: "gallery", image: "/media/lobby.jpg", lead: "galleryLead" },
-  { path: "location", image: "/media/terrace-evening.jpg", lead: "placeLead" },
-  { path: "visit", image: "/media/pool.jpg", lead: "visitLead" },
-] as const;
-
 function useChrome(lang: Lang, title: string) {
   const { pathname } = useLocation();
 
@@ -48,15 +40,7 @@ function Shell({ lang, title, children }: { lang: Lang; title: string; children:
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
-  const [solid, setSolid] = useState(false);
   useChrome(lang, title);
-
-  useEffect(() => {
-    const onScroll = () => setSolid(window.scrollY > 24);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   useEffect(() => {
     setOpen(false);
@@ -80,7 +64,7 @@ function Shell({ lang, title, children }: { lang: Lang; title: string; children:
       <a className="skip" href="#content">
         {text.nav.building}
       </a>
-      <header className={`nav ${solid || open ? "solid" : ""}`}>
+      <header className={`nav solid ${open ? "open" : ""}`}>
         <Link className="brand" to={`/${lang}`}>
           <span className="brand-mark">HY</span>
           <span>
@@ -147,16 +131,31 @@ function Shell({ lang, title, children }: { lang: Lang; title: string; children:
   );
 }
 
+function AgentCard({ lang }: { lang: Lang }) {
+  const text = copy[lang];
+  return (
+    <aside className="agent-card">
+      <img src="/brand/mor-nechasim.png" alt={text.office} />
+      <p>{text.visit.agentsLabel}</p>
+      <ul>
+        {text.visit.agents.map((agent) => (
+          <li key={agent.name}>{agent.name}</li>
+        ))}
+      </ul>
+      <Link to={`/${lang}/visit`}>{text.inquire}</Link>
+    </aside>
+  );
+}
+
 function PageHero({ image, kicker, title, alt }: { image: string; kicker: string; title: string; alt: string }) {
   return (
-    <section className="page-hero">
+    <header className="page-intro">
       <img src={image} alt={alt} />
-      <div className="hero-shade" />
-      <div className="hero-copy">
+      <div>
         <p className="kicker">{kicker}</p>
         <h1>{title}</h1>
       </div>
-    </section>
+    </header>
   );
 }
 
@@ -171,38 +170,45 @@ function Continue({ lang, to, label }: { lang: Lang; to: string; label: string }
 
 function HomePage({ lang }: { lang: Lang }) {
   const text = copy[lang];
-  const labels = [text.nav.building, text.nav.residences, text.nav.gallery, text.nav.place, text.nav.visit];
   return (
     <Shell lang={lang} title={text.metaTitle}>
-      <section className="hero">
+      <section className="banner">
         <img src="/media/sea-loungers.jpg" alt={text.gallery.captions[7]} />
-        <div className="hero-shade" />
-        <div className="hero-copy">
+      </section>
+      <section className="project-head">
+        <div>
           <p className="kicker">{text.hero.kicker}</p>
-          <h1>
-            {text.hero.title}
-            <em>{text.hero.place}</em>
-          </h1>
+          <h1>{text.hero.title}</h1>
+          <p className="place-line">{text.hero.place}</p>
           <p className="lead">{text.hero.lead}</p>
         </div>
-        <ul className="fact-row">
-          {text.facts.map((fact) => (
-            <li key={fact}>{fact}</li>
-          ))}
-        </ul>
+        <AgentCard lang={lang} />
       </section>
-      <section className="toc">
-        <p className="index reveal">{text.ui.index}</p>
-        {chapters.map((chapter, index) => (
-          <Link key={chapter.path} className="reveal" to={`/${lang}/${chapter.path}`}>
-            <span>0{index + 1}</span>
-            <div>
-              <h2>{labels[index]}</h2>
-              <p>{text.ui[chapter.lead]}</p>
-            </div>
-            <img src={chapter.image} alt="" />
-          </Link>
+      <ul className="stats">
+        {text.facts.map((fact) => (
+          <li key={fact}>{fact}</li>
         ))}
+      </ul>
+      <section className="catalog">
+        <header>
+          <div>
+            <p className="kicker">{text.homes.eyebrow}</p>
+            <h2>{text.homes.title}</h2>
+          </div>
+          <Link to={`/${lang}/residences`}>{text.nav.residences}</Link>
+        </header>
+        <div className="home-grid">
+          {text.residences.map((home, index) => (
+            <Link key={residenceIds[index]} className="home-card" to={`/${lang}/residences/${residenceIds[index]}`}>
+              <img src={residenceImages[index]} alt="" />
+              <div>
+                <h3>{home.name}</h3>
+                <p>{home.kind}</p>
+                <span>{text.ui.openHome}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
       </section>
     </Shell>
   );
@@ -277,12 +283,12 @@ function ResidencesPage({ lang }: { lang: Lang }) {
         </header>
         <div className="home-grid">
           {text.residences.map((home, index) => (
-            <Link key={residenceIds[index]} className="home-card reveal" to={`/${lang}/residences/${residenceIds[index]}`}>
+            <Link key={residenceIds[index]} className="home-card" to={`/${lang}/residences/${residenceIds[index]}`}>
               <img src={residenceImages[index]} alt="" />
               <div>
-                <span>0{index + 1}</span>
-                <h2>{home.name}</h2>
+                <h3>{home.name}</h3>
                 <p>{home.kind}</p>
+                <span>{text.ui.openHome}</span>
               </div>
             </Link>
           ))}
@@ -309,13 +315,12 @@ function ResidencePage({ lang }: { lang: Lang }) {
       <PageHero image={residenceImages[index]} kicker={residence.kind} title={residence.name} alt={residence.name} />
       <section className="detail">
         <div className="reveal">
-          <p className="index">0{index + 1}</p>
-          <h2>{residence.name}</h2>
           <p className="kind">{residence.kind}</p>
           <p>{residence.text}</p>
           <p className="plans-note">
             {text.homes.plansNote} <Link to={`/${lang}/visit`}>{text.homes.request}</Link>
           </p>
+          <AgentCard lang={lang} />
         </div>
         <figure className="reveal">
           <img src={frames[(index + 3) % frames.length].src} alt={text.gallery.captions[(index + 3) % frames.length]} />
