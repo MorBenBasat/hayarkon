@@ -17,6 +17,17 @@ type Dictionary = {
   metaDescription: string;
   nav: { building: string; residences: string; gallery: string; place: string; visit: string };
   inquire: string;
+  ui: {
+    index: string;
+    buildingLead: string;
+    residencesLead: string;
+    galleryLead: string;
+    placeLead: string;
+    visitLead: string;
+    openHome: string;
+    allHomes: string;
+    continue: string;
+  };
   close: string;
   menu: string;
   office: string;
@@ -67,6 +78,17 @@ export const copy: Record<Lang, Dictionary> = {
       visit: "ביקור",
     },
     inquire: "תיאום ביקור",
+    ui: {
+      index: "תוכן הבית",
+      buildingLead: "חמישה בתים פרטיים תחת קורת גג אחת, מוכנים לכניסה.",
+      residencesLead: "דירת גן וארבעה דופלקסים. לכל בית עמוד משלו.",
+      galleryLead: "אבן, עץ, וים. התמונות של הבניין עצמו.",
+      placeLead: "הים במרחק הליכה. הכתובת המלאה נשארת מחוץ לאתר.",
+      visitLead: "תכניות, מחיר וביקור נמסרים בשיחה ישירה.",
+      openHome: "לעמוד הדירה",
+      allHomes: "כל הדירות",
+      continue: "העמוד הבא",
+    },
     close: "סגירה",
     menu: "תפריט",
     office: "מור נכסים",
@@ -223,6 +245,17 @@ export const copy: Record<Lang, Dictionary> = {
       visit: "Visit",
     },
     inquire: "Arrange a visit",
+    ui: {
+      index: "The house",
+      buildingLead: "Five private homes under one roof, ready to enter.",
+      residencesLead: "A garden residence and four duplexes. Each home has its own page.",
+      galleryLead: "Stone, timber, and the sea. Photographs of the building itself.",
+      placeLead: "The sea is a short walk away. The full address stays off the site.",
+      visitLead: "Plans, price, and the visit are shared in a direct conversation.",
+      openHome: "Open the residence",
+      allHomes: "All residences",
+      continue: "Next page",
+    },
     close: "Close",
     menu: "Menu",
     office: "More Properties",
@@ -379,6 +412,17 @@ export const copy: Record<Lang, Dictionary> = {
       visit: "Visite",
     },
     inquire: "Organiser une visite",
+    ui: {
+      index: "La maison",
+      buildingLead: "Cinq maisons privées sous un seul toit, prêtes à être occupées.",
+      residencesLead: "Une résidence jardin et quatre duplex. Chaque maison a sa page.",
+      galleryLead: "Pierre, bois, et mer. Les photographies de l’immeuble.",
+      placeLead: "La mer est à quelques pas. L’adresse complète reste hors du site.",
+      visitLead: "Plans, prix et visite se transmettent dans un entretien direct.",
+      openHome: "Ouvrir la résidence",
+      allHomes: "Toutes les résidences",
+      continue: "Page suivante",
+    },
     close: "Fermer",
     menu: "Menu",
     office: "More Properties",
@@ -535,6 +579,17 @@ export const copy: Record<Lang, Dictionary> = {
       visit: "Визит",
     },
     inquire: "Назначить визит",
+    ui: {
+      index: "Дом",
+      buildingLead: "Пять частных домов под одной крышей, готовых к заселению.",
+      residencesLead: "Садовая резиденция и четыре дуплекса. У каждого дома своя страница.",
+      galleryLead: "Камень, дерево и море. Фотографии самого здания.",
+      placeLead: "Море в нескольких минутах. Полный адрес на сайте не публикуется.",
+      visitLead: "Планы, цена и визит передаются в прямом разговоре.",
+      openHome: "Открыть резиденцию",
+      allHomes: "Все резиденции",
+      continue: "Следующая страница",
+    },
     close: "Закрыть",
     menu: "Меню",
     office: "More Properties",

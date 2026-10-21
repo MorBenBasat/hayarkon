@@ -1,19 +1,29 @@
-import { useEffect, useState, type FormEvent } from "react";
-import { Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import { siteConfig } from "./config";
-import { frames, residenceImages } from "./gallery";
+import { frames, residenceIds, residenceImages } from "./gallery";
 import { copy, isLang, langMeta, langs, type Lang } from "./i18n";
 
-function usePageChrome(lang: Lang) {
+const chapters = [
+  { path: "building", image: "/media/living-sea-tv.jpg", lead: "buildingLead" },
+  { path: "residences", image: "/media/living-sea.jpg", lead: "residencesLead" },
+  { path: "gallery", image: "/media/lobby.jpg", lead: "galleryLead" },
+  { path: "location", image: "/media/terrace-evening.jpg", lead: "placeLead" },
+  { path: "visit", image: "/media/pool.jpg", lead: "visitLead" },
+] as const;
+
+function useChrome(lang: Lang, title: string) {
+  const { pathname } = useLocation();
+
   useEffect(() => {
     const meta = langMeta[lang];
-    const text = copy[lang];
     document.documentElement.lang = meta.html;
     document.documentElement.dir = meta.dir;
-    document.title = text.metaTitle;
+    document.title = title;
     const description = document.querySelector('meta[name="description"]');
-    description?.setAttribute("content", text.metaDescription);
-  }, [lang]);
+    description?.setAttribute("content", copy[lang].metaDescription);
+    window.scrollTo(0, 0);
+  }, [lang, title, pathname]);
 
   useEffect(() => {
     const nodes = document.querySelectorAll(".reveal");
@@ -30,26 +40,16 @@ function usePageChrome(lang: Lang) {
     );
     nodes.forEach((node) => observer.observe(node));
     return () => observer.disconnect();
-  }, [lang]);
+  }, [pathname, lang]);
 }
 
-function Page() {
-  const { lang: raw } = useParams();
-  if (!isLang(raw)) return <Navigate to="/he" replace />;
-  return <Site lang={raw} />;
-}
-
-function Site({ lang }: { lang: Lang }) {
+function Shell({ lang, title, children }: { lang: Lang; title: string; children: ReactNode }) {
   const text = copy[lang];
   const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [solid, setSolid] = useState(false);
-  const [frame, setFrame] = useState<number | null>(null);
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState("");
-  const [interest, setInterest] = useState(text.visit.form.interests[0]);
-
-  usePageChrome(lang);
+  useChrome(lang, title);
 
   useEffect(() => {
     const onScroll = () => setSolid(window.scrollY > 24);
@@ -59,11 +59,286 @@ function Site({ lang }: { lang: Lang }) {
   }, []);
 
   useEffect(() => {
-    setInterest(text.visit.form.interests[0]);
-    setSent(false);
-    setError("");
     setOpen(false);
-  }, [lang, text.visit.form.interests]);
+  }, [location.pathname]);
+
+  function go(code: Lang) {
+    const rest = location.pathname.replace(/^\/(he|en|fr|ru)/, "");
+    navigate(`/${code}${rest}`);
+  }
+
+  const links = [
+    { to: `/${lang}/building`, label: text.nav.building },
+    { to: `/${lang}/residences`, label: text.nav.residences },
+    { to: `/${lang}/gallery`, label: text.nav.gallery },
+    { to: `/${lang}/location`, label: text.nav.place },
+    { to: `/${lang}/visit`, label: text.nav.visit },
+  ];
+
+  return (
+    <>
+      <a className="skip" href="#content">
+        {text.nav.building}
+      </a>
+      <header className={`nav ${solid || open ? "solid" : ""}`}>
+        <Link className="brand" to={`/${lang}`}>
+          <span className="brand-mark">HY</span>
+          <span>
+            <strong>{text.hero.title}</strong>
+            <small>{text.hero.place}</small>
+          </span>
+        </Link>
+        <nav className={open ? "open" : ""}>
+          {links.map((item) => (
+            <NavLink key={item.to} to={item.to}>
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="nav-tools">
+          <div className="langs" role="group" aria-label={text.menu}>
+            {langs.map((code) => (
+              <button key={code} type="button" className={code === lang ? "on" : ""} onClick={() => go(code)}>
+                {langMeta[code].label}
+              </button>
+            ))}
+          </div>
+          <Link className="nav-cta" to={`/${lang}/visit`}>
+            {text.inquire}
+          </Link>
+          <button
+            className="burger"
+            type="button"
+            aria-expanded={open}
+            aria-label={text.menu}
+            onClick={() => setOpen((value) => !value)}
+          >
+            <span />
+            <span />
+          </button>
+        </div>
+      </header>
+      <main id="content">{children}</main>
+      <footer>
+        <div>
+          <strong>{text.footer.rights}</strong>
+          <p>{text.footer.discreet}</p>
+          <div className="footer-links">
+            {links.map((item) => (
+              <Link key={item.to} to={item.to}>
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+        <div className="footer-brand">
+          <span>{text.footer.marketed}</span>
+          <img src="/brand/mor-nechasim.png" alt={text.office} />
+        </div>
+        <div className="langs footer-langs">
+          {langs.map((code) => (
+            <button key={code} type="button" className={code === lang ? "on" : ""} onClick={() => go(code)}>
+              {langMeta[code].label}
+            </button>
+          ))}
+        </div>
+      </footer>
+    </>
+  );
+}
+
+function PageHero({ image, kicker, title, alt }: { image: string; kicker: string; title: string; alt: string }) {
+  return (
+    <section className="page-hero">
+      <img src={image} alt={alt} />
+      <div className="hero-shade" />
+      <div className="hero-copy">
+        <p className="kicker">{kicker}</p>
+        <h1>{title}</h1>
+      </div>
+    </section>
+  );
+}
+
+function Continue({ lang, to, label }: { lang: Lang; to: string; label: string }) {
+  return (
+    <Link className="continue" to={`/${lang}/${to}`}>
+      <span>{copy[lang].ui.continue}</span>
+      <strong>{label}</strong>
+    </Link>
+  );
+}
+
+function HomePage({ lang }: { lang: Lang }) {
+  const text = copy[lang];
+  const labels = [text.nav.building, text.nav.residences, text.nav.gallery, text.nav.place, text.nav.visit];
+  return (
+    <Shell lang={lang} title={text.metaTitle}>
+      <section className="hero">
+        <img src="/media/sea-loungers.jpg" alt={text.gallery.captions[7]} />
+        <div className="hero-shade" />
+        <div className="hero-copy">
+          <p className="kicker">{text.hero.kicker}</p>
+          <h1>
+            {text.hero.title}
+            <em>{text.hero.place}</em>
+          </h1>
+          <p className="lead">{text.hero.lead}</p>
+        </div>
+        <ul className="fact-row">
+          {text.facts.map((fact) => (
+            <li key={fact}>{fact}</li>
+          ))}
+        </ul>
+      </section>
+      <section className="toc">
+        <p className="index reveal">{text.ui.index}</p>
+        {chapters.map((chapter, index) => (
+          <Link key={chapter.path} className="reveal" to={`/${lang}/${chapter.path}`}>
+            <span>0{index + 1}</span>
+            <div>
+              <h2>{labels[index]}</h2>
+              <p>{text.ui[chapter.lead]}</p>
+            </div>
+            <img src={chapter.image} alt="" />
+          </Link>
+        ))}
+      </section>
+    </Shell>
+  );
+}
+
+function BuildingPage({ lang }: { lang: Lang }) {
+  const text = copy[lang];
+  return (
+    <Shell lang={lang} title={`${text.nav.building} · ${text.hero.title}`}>
+      <PageHero image="/media/living-sea-tv.jpg" kicker={text.story.eyebrow} title={text.story.title} alt={text.gallery.captions[9]} />
+      <section className="story single">
+        <div className="story-copy reveal">
+          {text.story.body.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+          <p className="aside">{text.story.aside}</p>
+        </div>
+        <figure className="story-photo reveal">
+          <img src="/media/lobby.jpg" alt={text.gallery.captions[3]} />
+          <figcaption>{text.office}</figcaption>
+        </figure>
+      </section>
+      <section className="offer">
+        <div className="reveal">
+          <p className="eyebrow light">{text.offer.eyebrow}</p>
+          <h2>{text.offer.title}</h2>
+          <p>{text.offer.body}</p>
+          <p className="price">{text.offer.price}</p>
+        </div>
+        <div className="audience-list">
+          <h3 className="reveal">{text.audiencesTitle}</h3>
+          <ol>
+            {text.audiences.map((item, index) => (
+              <li key={item.title} className="reveal">
+                <span>0{index + 1}</span>
+                <div>
+                  <strong>{item.title}</strong>
+                  <p>{item.text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+      <section className="standard">
+        <div className="reveal">
+          <p className="eyebrow">{text.standard.eyebrow}</p>
+          <h2>{text.standard.title}</h2>
+        </div>
+        <ul>
+          {text.standard.items.map((item, index) => (
+            <li key={item} className="reveal">
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              {item}
+            </li>
+          ))}
+        </ul>
+      </section>
+      <Continue lang={lang} to="residences" label={text.nav.residences} />
+    </Shell>
+  );
+}
+
+function ResidencesPage({ lang }: { lang: Lang }) {
+  const text = copy[lang];
+  return (
+    <Shell lang={lang} title={`${text.nav.residences} · ${text.hero.title}`}>
+      <PageHero image="/media/terrace-sea.jpg" kicker={text.homes.eyebrow} title={text.homes.title} alt={text.gallery.captions[2]} />
+      <section className="homes">
+        <header className="section-head reveal">
+          <p>{text.homes.intro}</p>
+        </header>
+        <div className="home-grid">
+          {text.residences.map((home, index) => (
+            <Link key={residenceIds[index]} className="home-card reveal" to={`/${lang}/residences/${residenceIds[index]}`}>
+              <img src={residenceImages[index]} alt="" />
+              <div>
+                <span>0{index + 1}</span>
+                <h2>{home.name}</h2>
+                <p>{home.kind}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+        <p className="plans-note reveal">
+          {text.homes.plansNote} <Link to={`/${lang}/visit`}>{text.homes.request}</Link>
+        </p>
+      </section>
+      <Continue lang={lang} to="gallery" label={text.nav.gallery} />
+    </Shell>
+  );
+}
+
+function ResidencePage({ lang }: { lang: Lang }) {
+  const { home } = useParams();
+  const text = copy[lang];
+  const index = residenceIds.indexOf(home as (typeof residenceIds)[number]);
+  if (index < 0) return <Navigate to={`/${lang}/residences`} replace />;
+  const residence = text.residences[index];
+  const previous = index === 0 ? residenceIds.length - 1 : index - 1;
+  const next = (index + 1) % residenceIds.length;
+  return (
+    <Shell lang={lang} title={`${residence.name} · ${text.hero.title}`}>
+      <PageHero image={residenceImages[index]} kicker={residence.kind} title={residence.name} alt={residence.name} />
+      <section className="detail">
+        <div className="reveal">
+          <p className="index">0{index + 1}</p>
+          <h2>{residence.name}</h2>
+          <p className="kind">{residence.kind}</p>
+          <p>{residence.text}</p>
+          <p className="plans-note">
+            {text.homes.plansNote} <Link to={`/${lang}/visit`}>{text.homes.request}</Link>
+          </p>
+        </div>
+        <figure className="reveal">
+          <img src={frames[(index + 3) % frames.length].src} alt={text.gallery.captions[(index + 3) % frames.length]} />
+        </figure>
+      </section>
+      <nav className="residence-pager">
+        <Link to={`/${lang}/residences/${residenceIds[previous]}`}>
+          <span>0{previous + 1}</span>
+          {text.residences[previous].name}
+        </Link>
+        <Link to={`/${lang}/residences`}>{text.ui.allHomes}</Link>
+        <Link to={`/${lang}/residences/${residenceIds[next]}`}>
+          <span>0{next + 1}</span>
+          {text.residences[next].name}
+        </Link>
+      </nav>
+    </Shell>
+  );
+}
+
+function GalleryPage({ lang }: { lang: Lang }) {
+  const text = copy[lang];
+  const [frame, setFrame] = useState<number | null>(null);
 
   useEffect(() => {
     if (frame === null) return;
@@ -80,297 +355,20 @@ function Site({ lang }: { lang: Lang }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [frame]);
 
-  function go(code: Lang) {
-    const hash = window.location.hash;
-    navigate(`/${code}${hash}`);
-  }
-
-  function closeMenu() {
-    setOpen(false);
-  }
-
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const name = String(data.get("name") ?? "").trim();
-    const phone = String(data.get("phone") ?? "").trim();
-    const email = String(data.get("email") ?? "").trim();
-    const message = String(data.get("message") ?? "").trim();
-    const topic = String(data.get("interest") ?? interest);
-    if (!name || !phone) {
-      setError(text.visit.form.required);
-      return;
-    }
-    setError("");
-    const body = `${text.hero.title} / ${text.hero.place}\n${name}\n${phone}\n${email}\n${topic}\n${message}`;
-    if (siteConfig.email) {
-      window.location.href = `mailto:${siteConfig.email}?subject=${encodeURIComponent(text.hero.title)}&body=${encodeURIComponent(body)}`;
-    } else if (siteConfig.whatsapp) {
-      window.open(`https://wa.me/${siteConfig.whatsapp}?text=${encodeURIComponent(body)}`, "_blank", "noopener,noreferrer");
-    }
-    setSent(true);
-  }
-
   return (
-    <>
-      <a className="skip" href="#building">
-        {text.nav.building}
-      </a>
-      <header className={`nav ${solid || open ? "solid" : ""}`}>
-        <a className="brand" href="#top" onClick={closeMenu}>
-          <span className="brand-mark">HY</span>
-          <span>
-            <strong>{text.hero.title}</strong>
-            <small>{text.hero.place}</small>
-          </span>
-        </a>
-        <nav className={open ? "open" : ""}>
-          <a href="#building" onClick={closeMenu}>{text.nav.building}</a>
-          <a href="#residences" onClick={closeMenu}>{text.nav.residences}</a>
-          <a href="#gallery" onClick={closeMenu}>{text.nav.gallery}</a>
-          <a href="#place" onClick={closeMenu}>{text.nav.place}</a>
-          <a href="#visit" onClick={closeMenu}>{text.nav.visit}</a>
-        </nav>
-        <div className="nav-tools">
-          <div className="langs" role="group" aria-label={text.menu}>
-            {langs.map((code) => (
-              <button key={code} type="button" className={code === lang ? "on" : ""} onClick={() => go(code)}>
-                {langMeta[code].label}
-              </button>
-            ))}
-          </div>
-          <a className="nav-cta" href="#visit">
-            {text.inquire}
-          </a>
-          <button
-            className="burger"
-            type="button"
-            aria-expanded={open}
-            aria-label={text.menu}
-            onClick={() => setOpen((value) => !value)}
-          >
-            <span />
-            <span />
-          </button>
-        </div>
-      </header>
-
-      <main id="top">
-        <section className="hero">
-          <img src="/media/sea-loungers.jpg" alt={text.gallery.captions[7]} />
-          <div className="hero-shade" />
-          <div className="hero-copy">
-            <p className="kicker">{text.hero.kicker}</p>
-            <h1>
-              {text.hero.title}
-              <em>{text.hero.place}</em>
-            </h1>
-            <p className="lead">{text.hero.lead}</p>
-          </div>
-          <ul className="fact-row">
-            {text.facts.map((fact) => (
-              <li key={fact}>{fact}</li>
-            ))}
-          </ul>
-        </section>
-
-        <section id="building" className="story">
-          <div className="story-copy reveal">
-            <p className="index">{text.story.index}</p>
-            <p className="eyebrow">{text.story.eyebrow}</p>
-            <h2>{text.story.title}</h2>
-            {text.story.body.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
-            <p className="aside">{text.story.aside}</p>
-          </div>
-          <figure className="story-photo reveal">
-            <img src="/media/living-sea-tv.jpg" alt={text.gallery.captions[9]} />
-            <figcaption>{text.office}</figcaption>
-          </figure>
-        </section>
-
-        <section className="offer">
-          <div className="reveal">
-            <p className="eyebrow light">{text.offer.eyebrow}</p>
-            <h2>{text.offer.title}</h2>
-            <p>{text.offer.body}</p>
-            <p className="price">{text.offer.price}</p>
-          </div>
-          <div className="audience-list">
-            <h3 className="reveal">{text.audiencesTitle}</h3>
-            <ol>
-              {text.audiences.map((item, index) => (
-                <li key={item.title} className="reveal">
-                  <span>0{index + 1}</span>
-                  <div>
-                    <strong>{item.title}</strong>
-                    <p>{item.text}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        <section id="residences" className="homes">
-          <header className="section-head reveal">
-            <p className="index">{text.homes.eyebrow}</p>
-            <h2>{text.homes.title}</h2>
-            <p>{text.homes.intro}</p>
-          </header>
-          <div className="residence-list">
-            {text.residences.map((home, index) => (
-              <article key={home.name} className="residence reveal">
-                <img src={residenceImages[index]} alt="" />
-                <div>
-                  <span className="num">0{index + 1}</span>
-                  <h3>{home.name}</h3>
-                  <p className="kind">{home.kind}</p>
-                  <p>{home.text}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-          <p className="plans-note reveal">
-            {text.homes.plansNote} <a href="#visit">{text.homes.request}</a>
-          </p>
-        </section>
-
-        <section id="gallery" className="gallery">
-          <header className="section-head reveal">
-            <p className="index">{text.gallery.eyebrow}</p>
-            <h2>{text.gallery.title}</h2>
-          </header>
-          <div className="mosaic">
-            {frames.map((item, index) => (
-              <button
-                key={item.src}
-                type="button"
-                className={`shot ${item.layout}`}
-                onClick={() => setFrame(index)}
-              >
-                <img src={item.src} alt={text.gallery.captions[index]} />
-                <span>{text.gallery.captions[index]}</span>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section id="place" className="place">
-          <div className="place-copy reveal">
-            <p className="index">{text.place.eyebrow}</p>
-            <h2>{text.place.title}</h2>
-            <p className="intro">{text.place.intro}</p>
-            <div className="points">
-              {text.place.points.map((point) => (
-                <article key={point.title}>
-                  <h3>{point.title}</h3>
-                  <p>{point.text}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-          <figure className="place-photo reveal">
-            <img src="/media/terrace-evening.jpg" alt={text.gallery.captions[5]} />
-          </figure>
-        </section>
-
-        <section className="standard">
-          <div className="reveal">
-            <p className="eyebrow">{text.standard.eyebrow}</p>
-            <h2>{text.standard.title}</h2>
-          </div>
-          <ul>
-            {text.standard.items.map((item, index) => (
-              <li key={item} className="reveal">
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                {item}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section id="visit" className="visit">
-          <div className="visit-copy reveal">
-            <p className="index">{text.visit.eyebrow}</p>
-            <h2>{text.visit.title}</h2>
-            <p>{text.visit.body}</p>
-            <p className="agents-label">{text.visit.agentsLabel}</p>
-            <ul className="agents">
-              {text.visit.agents.map((agent) => (
-                <li key={agent.name}>
-                  <strong>{agent.name}</strong>
-                  <span>{agent.role}</span>
-                </li>
-              ))}
-            </ul>
-            <img className="office-logo" src="/brand/mor-nechasim.png" alt={text.office} />
-          </div>
-          <div className="visit-form reveal">
-            {sent ? (
-              <div className="success">
-                <p className="eyebrow">{text.office}</p>
-                <h3>{text.visit.form.successTitle}</h3>
-                <p>{text.visit.form.successBody}</p>
-                <button type="button" onClick={() => setSent(false)}>
-                  {text.visit.form.again}
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={onSubmit}>
-                <label>
-                  {text.visit.form.name}
-                  <input name="name" autoComplete="name" />
-                </label>
-                <label>
-                  {text.visit.form.phone}
-                  <input name="phone" autoComplete="tel" inputMode="tel" />
-                </label>
-                <label className="full">
-                  {text.visit.form.email}
-                  <input name="email" type="email" autoComplete="email" />
-                </label>
-                <label className="full">
-                  {text.visit.form.interest}
-                  <select name="interest" value={interest} onChange={(event) => setInterest(event.target.value)}>
-                    {text.visit.form.interests.map((item) => (
-                      <option key={item}>{item}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="full">
-                  {text.visit.form.message}
-                  <textarea name="message" rows={4} />
-                </label>
-                {error ? <p className="form-error full">{error}</p> : null}
-                <button className="full" type="submit">
-                  {text.visit.form.submit}
-                </button>
-              </form>
-            )}
-          </div>
-        </section>
-      </main>
-
-      <footer>
-        <div>
-          <strong>{text.footer.rights}</strong>
-          <p>{text.footer.discreet}</p>
-        </div>
-        <div className="footer-brand">
-          <span>{text.footer.marketed}</span>
-          <img src="/brand/mor-nechasim.png" alt={text.office} />
-        </div>
-        <div className="langs footer-langs">
-          {langs.map((code) => (
-            <button key={code} type="button" className={code === lang ? "on" : ""} onClick={() => go(code)}>
-              {langMeta[code].label}
+    <Shell lang={lang} title={`${text.nav.gallery} · ${text.hero.title}`}>
+      <PageHero image="/media/pool-sky.jpg" kicker={text.gallery.eyebrow} title={text.gallery.title} alt={text.gallery.captions[10]} />
+      <section className="gallery">
+        <div className="mosaic">
+          {frames.map((item, index) => (
+            <button key={item.src} type="button" className={`shot ${item.layout}`} onClick={() => setFrame(index)}>
+              <img src={item.src} alt={text.gallery.captions[index]} />
+              <span>{text.gallery.captions[index]}</span>
             </button>
           ))}
         </div>
-      </footer>
-
+      </section>
+      <Continue lang={lang} to="location" label={text.nav.place} />
       {frame !== null ? (
         <dialog className="lightbox" open>
           <button className="lightbox-close" type="button" onClick={() => setFrame(null)}>
@@ -403,7 +401,149 @@ function Site({ lang }: { lang: Lang }) {
           </button>
         </dialog>
       ) : null}
-    </>
+    </Shell>
+  );
+}
+
+function LocationPage({ lang }: { lang: Lang }) {
+  const text = copy[lang];
+  return (
+    <Shell lang={lang} title={`${text.nav.place} · ${text.hero.title}`}>
+      <PageHero image="/media/sea-loungers.jpg" kicker={text.place.eyebrow} title={text.place.title} alt={text.gallery.captions[7]} />
+      <section className="place single">
+        <div className="place-copy reveal">
+          <p className="intro">{text.place.intro}</p>
+          <div className="points">
+            {text.place.points.map((point) => (
+              <article key={point.title}>
+                <h3>{point.title}</h3>
+                <p>{point.text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+        <figure className="place-photo reveal">
+          <img src="/media/terrace-evening.jpg" alt={text.gallery.captions[5]} />
+        </figure>
+      </section>
+      <Continue lang={lang} to="visit" label={text.nav.visit} />
+    </Shell>
+  );
+}
+
+function VisitPage({ lang }: { lang: Lang }) {
+  const text = copy[lang];
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+  const [interest, setInterest] = useState(text.visit.form.interests[0]);
+
+  useEffect(() => {
+    setInterest(text.visit.form.interests[0]);
+    setSent(false);
+    setError("");
+  }, [lang, text.visit.form.interests]);
+
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const name = String(data.get("name") ?? "").trim();
+    const phone = String(data.get("phone") ?? "").trim();
+    const email = String(data.get("email") ?? "").trim();
+    const message = String(data.get("message") ?? "").trim();
+    const topic = String(data.get("interest") ?? interest);
+    if (!name || !phone) {
+      setError(text.visit.form.required);
+      return;
+    }
+    setError("");
+    const body = `${text.hero.title} / ${text.hero.place}\n${name}\n${phone}\n${email}\n${topic}\n${message}`;
+    if (siteConfig.email) {
+      window.location.href = `mailto:${siteConfig.email}?subject=${encodeURIComponent(text.hero.title)}&body=${encodeURIComponent(body)}`;
+    } else if (siteConfig.whatsapp) {
+      window.open(`https://wa.me/${siteConfig.whatsapp}?text=${encodeURIComponent(body)}`, "_blank", "noopener,noreferrer");
+    }
+    setSent(true);
+  }
+
+  return (
+    <Shell lang={lang} title={`${text.nav.visit} · ${text.hero.title}`}>
+      <PageHero image="/media/lobby-detail.jpg" kicker={text.visit.eyebrow} title={text.visit.title} alt={text.gallery.captions[3]} />
+      <section className="visit flat">
+        <div className="visit-copy reveal">
+          <p>{text.visit.body}</p>
+          <p className="agents-label">{text.visit.agentsLabel}</p>
+          <ul className="agents">
+            {text.visit.agents.map((agent) => (
+              <li key={agent.name}>
+                <strong>{agent.name}</strong>
+                <span>{agent.role}</span>
+              </li>
+            ))}
+          </ul>
+          <img className="office-logo" src="/brand/mor-nechasim.png" alt={text.office} />
+        </div>
+        <div className="visit-form reveal">
+          {sent ? (
+            <div className="success">
+              <p className="eyebrow">{text.office}</p>
+              <h3>{text.visit.form.successTitle}</h3>
+              <p>{text.visit.form.successBody}</p>
+              <button type="button" onClick={() => setSent(false)}>
+                {text.visit.form.again}
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={onSubmit}>
+              <label>
+                {text.visit.form.name}
+                <input name="name" autoComplete="name" />
+              </label>
+              <label>
+                {text.visit.form.phone}
+                <input name="phone" autoComplete="tel" inputMode="tel" />
+              </label>
+              <label className="full">
+                {text.visit.form.email}
+                <input name="email" type="email" autoComplete="email" />
+              </label>
+              <label className="full">
+                {text.visit.form.interest}
+                <select name="interest" value={interest} onChange={(event) => setInterest(event.target.value)}>
+                  {text.visit.form.interests.map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="full">
+                {text.visit.form.message}
+                <textarea name="message" rows={4} />
+              </label>
+              {error ? <p className="form-error full">{error}</p> : null}
+              <button className="full" type="submit">
+                {text.visit.form.submit}
+              </button>
+            </form>
+          )}
+        </div>
+      </section>
+    </Shell>
+  );
+}
+
+function LanguageRoutes() {
+  const { lang } = useParams();
+  if (!isLang(lang)) return <Navigate to="/he" replace />;
+  return (
+    <Routes>
+      <Route index element={<HomePage lang={lang} />} />
+      <Route path="building" element={<BuildingPage lang={lang} />} />
+      <Route path="residences" element={<ResidencesPage lang={lang} />} />
+      <Route path="residences/:home" element={<ResidencePage lang={lang} />} />
+      <Route path="gallery" element={<GalleryPage lang={lang} />} />
+      <Route path="location" element={<LocationPage lang={lang} />} />
+      <Route path="visit" element={<VisitPage lang={lang} />} />
+      <Route path="*" element={<Navigate to={`/${lang}`} replace />} />
+    </Routes>
   );
 }
 
@@ -411,7 +551,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/he" replace />} />
-      <Route path="/:lang" element={<Page />} />
+      <Route path="/:lang/*" element={<LanguageRoutes />} />
     </Routes>
   );
 }

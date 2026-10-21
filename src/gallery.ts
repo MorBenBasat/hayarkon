@@ -13,6 +13,8 @@ export const frames = [
   { src: "/media/terrace-chairs.jpg", layout: "std" },
 ] as const;
 
+export const residenceIds = ["garden", "one", "two", "three", "four"] as const;
+
 export const residenceImages = [
   "/media/living-city.jpg",
   "/media/living-marble-long.jpg",
