@@ -149,9 +149,10 @@ function AgentCard({ lang }: { lang: Lang }) {
 
 function PageHero({ image, kicker, title, alt }: { image: string; kicker: string; title: string; alt: string }) {
   return (
-    <header className="page-intro">
+    <header className="stage short">
       <img src={image} alt={alt} />
-      <div>
+      <div className="stage-shade" />
+      <div className="stage-copy">
         <p className="kicker">{kicker}</p>
         <h1>{title}</h1>
       </div>
@@ -172,23 +173,24 @@ function HomePage({ lang }: { lang: Lang }) {
   const text = copy[lang];
   return (
     <Shell lang={lang} title={text.metaTitle}>
-      <section className="banner">
+      <section className="stage">
         <img src="/media/sea-loungers.jpg" alt={text.gallery.captions[7]} />
-      </section>
-      <section className="project-head">
-        <div>
+        <div className="stage-shade" />
+        <div className="stage-copy">
           <p className="kicker">{text.hero.kicker}</p>
           <h1>{text.hero.title}</h1>
           <p className="place-line">{text.hero.place}</p>
           <p className="lead">{text.hero.lead}</p>
         </div>
+        <ul className="stats">
+          {text.facts.map((fact) => (
+            <li key={fact}>{fact}</li>
+          ))}
+        </ul>
+      </section>
+      <section className="project-head">
         <AgentCard lang={lang} />
       </section>
-      <ul className="stats">
-        {text.facts.map((fact) => (
-          <li key={fact}>{fact}</li>
-        ))}
-      </ul>
       <section className="catalog">
         <header>
           <div>
