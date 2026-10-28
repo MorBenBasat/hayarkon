@@ -65,12 +65,30 @@ function Shell({ lang, title, children }: { lang: Lang; title: string; children:
         {text.nav.building}
       </a>
       <header className={`nav solid ${open ? "open" : ""}`}>
-        <Link className="brand" to={`/${lang}`}>
-          <span className="brand-mark">68</span>
-          <span className="brand-text">
-            <strong>{text.hero.title}</strong>
-            <small>TEL AVIV</small>
-          </span>
+        <Link className="brand" to={`/${lang}`} aria-label={text.hero.title}>
+          <div className="brand-crest-wrapper">
+            <svg className="brand-crest" width="38" height="38" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="22" cy="22" r="20" stroke="url(#goldLogoGrad)" strokeWidth="1.2" strokeOpacity="0.4" />
+              <circle cx="22" cy="22" r="16.5" stroke="url(#goldLogoGrad)" strokeWidth="1.2" />
+              <path d="M12 25C15 23.5 18 25.5 22 24C26 22.5 29 24.5 32 23" stroke="url(#goldLogoGrad)" strokeWidth="1.4" strokeLinecap="round" />
+              <path d="M14 29C17 27.5 20 29.5 22 28.5C24 27.5 27 29.5 30 28" stroke="url(#goldLogoGrad)" strokeWidth="1" strokeLinecap="round" strokeOpacity="0.7" />
+              <path d="M22 10V18" stroke="url(#goldLogoGrad)" strokeWidth="1.4" strokeLinecap="round" />
+              <path d="M16 12L19.5 18.5" stroke="url(#goldLogoGrad)" strokeWidth="1.2" strokeLinecap="round" />
+              <path d="M28 12L24.5 18.5" stroke="url(#goldLogoGrad)" strokeWidth="1.2" strokeLinecap="round" />
+              <circle cx="22" cy="19.5" r="2.5" fill="url(#goldLogoGrad)" />
+              <defs>
+                <linearGradient id="goldLogoGrad" x1="4" y1="4" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#e2be6c" />
+                  <stop offset="0.5" stopColor="#a37c44" />
+                  <stop offset="1" stopColor="#7a5520" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div className="brand-text">
+            <strong className="brand-title">{text.hero.title}</strong>
+            <span className="brand-sub">TEL AVIV · SEA FRONT</span>
+          </div>
         </Link>
         <nav className={open ? "open" : ""}>
           {links.map((item) => (
