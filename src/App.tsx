@@ -157,7 +157,7 @@ function PageHero({ image, kicker, title, alt }: { image: string; kicker: string
       <img src={image} alt={alt} />
       <div className="stage-shade" />
       <div className="stage-copy">
-        <p className="kicker">{kicker}</p>
+        <span className="page-hero-kicker">{kicker}</span>
         <h1>{title}</h1>
       </div>
     </header>
