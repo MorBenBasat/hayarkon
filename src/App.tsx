@@ -226,6 +226,161 @@ const tickerItems: Record<Lang, string[]> = {
   ],
 };
 
+function AgentContactCard({ lang }: { lang: Lang }) {
+  const [salutation, setSalutation] = useState(lang === "he" ? "אדוני" : "Mr.");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [countryCode, setCountryCode] = useState(lang === "he" ? "+972" : "+1");
+  const [phone, setPhone] = useState("");
+  const [message, setMessage] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!firstName || !phone) return;
+    setSubmitted(true);
+  };
+
+  return (
+    <section className="agent-representation-section reveal">
+      <div className="agent-rep-card">
+        <div className="agent-rep-header">
+          <div className="agent-rep-meta">
+            <span className="rep-kicker">
+              {lang === "he" ? "נכס זה מיוצג על ידי" : lang === "fr" ? "Cette propriété est représentée par" : lang === "ru" ? "Этот объект представляет" : "This property is represented by"}
+            </span>
+            <h3 className="rep-name">
+              {lang === "he" ? "מור בן בסט" : "Mor Ben Basat"}
+            </h3>
+            <a className="rep-phone" href="tel:+972543600082" dir="ltr">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              <span>+972 54 360 0082</span>
+            </a>
+            <Link className="rep-link" to={`/${lang}/residences`}>
+              {lang === "he" ? "ראה נכסים בפרויקט ←" : "View Residences ←"}
+            </Link>
+          </div>
+          <div className="agent-avatar-wrap">
+            <img src="/media/mor-ben-basat.jpg" alt="מור בן בסט" className="agent-avatar-img" />
+          </div>
+        </div>
+
+        <h4 className="inquiry-headline">
+          {lang === "he" ? "צור קשר לעוד מידע" : lang === "fr" ? "Contactez pour plus d'informations" : lang === "ru" ? "Свяжитесь для получения информации" : "Contact for more information"}
+        </h4>
+
+        {submitted ? (
+          <div className="rep-success-box">
+            <span className="success-icon">✓</span>
+            <h5>{lang === "he" ? "פנייתך התקבלה בהצלחה" : "Inquiry Received Successfully"}</h5>
+            <p>
+              {lang === "he"
+                ? "תודה רבה. מור בן בסט ייצור עמך קשר אישי ודיסקרטי בהקדם לתיאום פגישה וסיור פרטי בנכס."
+                : "Thank you. Mor Ben Basat will be in touch directly for private viewing & advisory."}
+            </p>
+            <button type="button" className="rep-reset-btn" onClick={() => setSubmitted(false)}>
+              {lang === "he" ? "שליחת פנייה נוספת" : "Send Another Message"}
+            </button>
+          </div>
+        ) : (
+          <form className="rep-form" onSubmit={handleSubmit}>
+            <div className="rep-form-grid">
+              <div className="rep-field rep-select-field">
+                <select value={salutation} onChange={(e) => setSalutation(e.target.value)}>
+                  {lang === "he" ? (
+                    <>
+                      <option value="אדוני">אדוני</option>
+                      <option value="גברתי">גברתי</option>
+                      <option value="ד״ר">ד״ר</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="Mr.">Mr.</option>
+                      <option value="Ms.">Ms.</option>
+                      <option value="Mrs.">Mrs.</option>
+                      <option value="Dr.">Dr.</option>
+                    </>
+                  )}
+                </select>
+                <span className="rep-chevron">▼</span>
+              </div>
+
+              <div className="rep-field">
+                <input
+                  type="text"
+                  required
+                  placeholder={lang === "he" ? "שם פרטי *" : "First Name *"}
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+              </div>
+
+              <div className="rep-field">
+                <input
+                  type="text"
+                  placeholder={lang === "he" ? "שם משפחה" : "Last Name"}
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+              </div>
+
+              <div className="rep-field">
+                <input
+                  type="email"
+                  placeholder={lang === "he" ? "אימייל" : "Email"}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+
+              <div className="rep-field rep-select-field">
+                <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)}>
+                  <option value="+972">ישראל (+972)</option>
+                  <option value="+1">USA / CAN (+1)</option>
+                  <option value="+44">UK (+44)</option>
+                  <option value="+33">France (+33)</option>
+                  <option value="+49">Germany (+49)</option>
+                  <option value="+7">Russia (+7)</option>
+                </select>
+                <span className="rep-chevron">▼</span>
+              </div>
+
+              <div className="rep-field">
+                <input
+                  type="tel"
+                  required
+                  placeholder={lang === "he" ? "טלפון *" : "Phone *"}
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
+
+              <div className="rep-field rep-textarea-field">
+                <textarea
+                  rows={4}
+                  placeholder={lang === "he" ? "הודעה..." : "Message..."}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <button type="submit" className="rep-submit-pill">
+              <span>{lang === "he" ? "שליחת פנייה דיסקרטית" : "Send Confidential Inquiry"}</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </form>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function HomePage({ lang }: { lang: Lang }) {
   const text = copy[lang];
   return (
@@ -288,34 +443,7 @@ function HomePage({ lang }: { lang: Lang }) {
         </section>
       ) : null}
 
-      <section className="advisory-section reveal">
-        <div className="advisory-strip">
-          <div className="advisory-info">
-            <span className="advisory-kicker">{lang === "he" ? "שיווק בלעדי · מור נכסים" : "Exclusive Marketing · More Properties"}</span>
-            <h3>{lang === "he" ? "תיאום ביקור פרטי וייעוץ דיסקרטי" : "Private Viewing & Discreet Advisory"}</h3>
-            <p>{lang === "he" ? "חוברת הפרויקט המלאה, תוכניות אדריכליות ומחיר נמסרים בפנייה ישירה." : "Full project brochure, architectural plans, and pricing are shared in discreet private consultation."}</p>
-          </div>
-          <div className="advisory-agents">
-            {text.visit.agents.map((agent) => (
-              <div key={agent.name} className="agent-pill">
-                <strong>{agent.name}</strong>
-                <span>{agent.role}</span>
-              </div>
-            ))}
-          </div>
-          <div className="advisory-actions">
-            <Link className="btn-inquire" to={`/${lang}/visit`}>
-              {text.inquire}
-            </Link>
-            <a className="btn-call" href="tel:+972543600082">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-              </svg>
-              <span>054-360-0082</span>
-            </a>
-          </div>
-        </div>
-      </section>
+      <AgentContactCard lang={lang} />
 
       {text.luxuryHighlights ? (
         <section className="highlights-section reveal">
