@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import { siteConfig } from "./config";
-import { frames, residenceIds, residenceImages } from "./gallery";
+import { frames, residenceIds, residenceImages, type GalleryCategory } from "./gallery";
 import { copy, isLang, langMeta, langs, type Lang } from "./i18n";
 
 function useChrome(lang: Lang, title: string) {
@@ -66,21 +66,40 @@ function Shell({ lang, title, children }: { lang: Lang; title: string; children:
       </a>
       <header className={`nav solid ${open ? "open" : ""}`}>
         <Link className="brand" to={`/${lang}`}>
-          <span className="brand-mark">HY</span>
-          <span>
+          <span className="brand-mark">68</span>
+          <span className="brand-text">
             <strong>{text.hero.title}</strong>
-            <small>{text.hero.place}</small>
+            <small>TEL AVIV</small>
           </span>
         </Link>
         <nav className={open ? "open" : ""}>
           {links.map((item) => (
-            <NavLink key={item.to} to={item.to}>
+            <NavLink key={item.to} to={item.to} onClick={() => setOpen(false)}>
               {item.label}
             </NavLink>
           ))}
+          <div className="mobile-menu-footer">
+            <Link className="mobile-menu-cta" to={`/${lang}/visit`} onClick={() => setOpen(false)}>
+              {text.inquire}
+            </Link>
+            <a className="mobile-menu-phone" href="tel:+972543600082">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              <span>054-360-0082</span>
+            </a>
+            <div className="langs mobile-langs">
+              {langs.map((code) => (
+                <button key={code} type="button" className={code === lang ? "on" : ""} onClick={() => { go(code); setOpen(false); }}>
+                  {langMeta[code].label}
+                </button>
+              ))}
+            </div>
+          </div>
         </nav>
         <div className="nav-tools">
-          <div className="langs" role="group" aria-label={text.menu}>
+          <span className="currency-pill">₪ / $</span>
+          <div className="langs desktop-langs" role="group" aria-label={text.menu}>
             {langs.map((code) => (
               <button key={code} type="button" className={code === lang ? "on" : ""} onClick={() => go(code)}>
                 {langMeta[code].label}
@@ -131,21 +150,6 @@ function Shell({ lang, title, children }: { lang: Lang; title: string; children:
   );
 }
 
-function AgentCard({ lang }: { lang: Lang }) {
-  const text = copy[lang];
-  return (
-    <aside className="agent-card">
-      <img src="/brand/mor-nechasim.png" alt={text.office} />
-      <p>{text.visit.agentsLabel}</p>
-      <ul>
-        {text.visit.agents.map((agent) => (
-          <li key={agent.name}>{agent.name}</li>
-        ))}
-      </ul>
-      <Link to={`/${lang}/visit`}>{text.inquire}</Link>
-    </aside>
-  );
-}
 
 function PageHero({ image, kicker, title, alt }: { image: string; kicker: string; title: string; alt: string }) {
   return (
@@ -169,6 +173,41 @@ function Continue({ lang, to, label }: { lang: Lang; to: string; label: string }
   );
 }
 
+const tickerItems: Record<Lang, string[]> = {
+  he: [
+    "קו ראשון אמיתי לחוף הים",
+    "פנטהאוז דופלקס יחיד במינו",
+    "בריכת שחייה פרטית מול השקיעה",
+    "תקרות בגובה 3.40 מטר",
+    "שיווק בלעדי · מור נכסים",
+    "מתקן חניה רובוטי עצמאי",
+  ],
+  en: [
+    "First Line to the Mediterranean",
+    "One-of-a-Kind Duplex Penthouse",
+    "Private Sunset Swimming Pool",
+    "3.40m High Ceilings",
+    "Exclusive Marketing · More Properties",
+    "Automated Parking System",
+  ],
+  fr: [
+    "Première Ligne Face à la Méditerranée",
+    "Penthouse Duplex d'Exception",
+    "Piscine Privée Face au Coucher de Soleil",
+    "Hauteur Sous Plafond 3.40m",
+    "Commercialisation Exclusive · More Properties",
+    "Système de Parking Robotisé",
+  ],
+  ru: [
+    "Первая линия у Средиземного моря",
+    "Уникальный двухуровневый пентхаус",
+    "Частный бассейн с видом на закат",
+    "Высота потоלков 3.40 м",
+    "Эксклюзивный маркетинг · More Properties",
+    "Автоматизированный паркинг",
+  ],
+};
+
 function HomePage({ lang }: { lang: Lang }) {
   const text = copy[lang];
   return (
@@ -177,20 +216,109 @@ function HomePage({ lang }: { lang: Lang }) {
         <img src="/media/sea-loungers.jpg" alt={text.gallery.captions[7]} />
         <div className="stage-shade" />
         <div className="stage-copy">
-          <p className="kicker">{text.hero.kicker}</p>
+          <span className="luxury-badge">{text.refCode || "REF: 440 · TLV"} · {text.hero.kicker}</span>
           <h1>{text.hero.title}</h1>
           <p className="place-line">{text.hero.place}</p>
           <p className="lead">{text.hero.lead}</p>
+          <div className="hero-actions">
+            <Link className="hero-btn-primary" to={`/${lang}/visit`}>
+              <span>{text.inquire}</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </Link>
+            <Link className="hero-btn-secondary" to={`/${lang}/gallery`}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+              <span>{text.nav.gallery} · 12 {lang === "he" ? "תצלומים" : "Photos"}</span>
+            </Link>
+          </div>
+          <div className="hero-features-chips">
+            <span>✦ {lang === "he" ? "קו 1 לים" : "Seafront"}</span>
+            <span>✦ {lang === "he" ? "בריכה פרטית" : "Private Pool"}</span>
+            <span>✦ {lang === "he" ? "330 מ״ר" : "330 SQM"}</span>
+            <span>✦ {lang === "he" ? "חניה רובוטית" : "Robotic Parking"}</span>
+          </div>
         </div>
-        <ul className="stats">
-          {text.facts.map((fact) => (
-            <li key={fact}>{fact}</li>
+      </section>
+
+      <div className="luxury-ticker" aria-hidden="true">
+        <div className="ticker-track">
+          {tickerItems[lang].concat(tickerItems[lang]).map((item, idx) => (
+            <span key={idx} className="ticker-item">
+              <span className="ticker-dot">✦</span>
+              {item}
+            </span>
           ))}
-        </ul>
+        </div>
+      </div>
+
+      {text.parameters ? (
+        <section className="parameters-section">
+          <div className="parameters-strip reveal">
+            {text.parameters.map((p) => (
+              <div key={p.title} className="param-box">
+                <p className="param-title">{p.title}</p>
+                <h3 className="param-val">{p.value}</h3>
+                <p className="param-desc">{p.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="advisory-section reveal">
+        <div className="advisory-strip">
+          <div className="advisory-info">
+            <span className="advisory-kicker">{lang === "he" ? "שיווק בלעדי · מור נכסים" : "Exclusive Marketing · More Properties"}</span>
+            <h3>{lang === "he" ? "תיאום ביקור פרטי וייעוץ דיסקרטי" : "Private Viewing & Discreet Advisory"}</h3>
+            <p>{lang === "he" ? "חוברת הפרויקט המלאה, תוכניות אדריכליות ומחיר נמסרים בפנייה ישירה." : "Full project brochure, architectural plans, and pricing are shared in discreet private consultation."}</p>
+          </div>
+          <div className="advisory-agents">
+            {text.visit.agents.map((agent) => (
+              <div key={agent.name} className="agent-pill">
+                <strong>{agent.name}</strong>
+                <span>{agent.role}</span>
+              </div>
+            ))}
+          </div>
+          <div className="advisory-actions">
+            <Link className="btn-inquire" to={`/${lang}/visit`}>
+              {text.inquire}
+            </Link>
+            <a className="btn-call" href="tel:+972543600082">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              <span>054-360-0082</span>
+            </a>
+          </div>
+        </div>
       </section>
-      <section className="project-head">
-        <AgentCard lang={lang} />
-      </section>
+
+      {text.luxuryHighlights ? (
+        <section className="highlights-section reveal">
+          <header className="section-head">
+            <div>
+              <p className="kicker">{lang === "he" ? "סטנדרט של מצויינות" : "Standard of Excellence"}</p>
+              <h2>{lang === "he" ? "איכות חיים ויוקרה בקו ראשון לים" : "Uncompromising Luxury on the Coast"}</h2>
+            </div>
+            <Link to={`/${lang}/building`}>{text.nav.building}</Link>
+          </header>
+          <div className="highlights-grid">
+            {text.luxuryHighlights.map((item) => (
+              <article key={item.title} className="highlight-card">
+                <h3>{item.title}</h3>
+                <p>{item.desc}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <section className="catalog">
         <header>
           <div>
@@ -202,16 +330,35 @@ function HomePage({ lang }: { lang: Lang }) {
         <div className="home-grid">
           {text.residences.map((home, index) => (
             <Link key={residenceIds[index]} className="home-card" to={`/${lang}/residences/${residenceIds[index]}`}>
+              <span className="home-card-badge">
+                {index === 0
+                  ? (lang === "he" ? "פנטהאוז דופלקס · בריכה פרטית" : "Duplex Penthouse · Private Pool")
+                  : index === 1
+                  ? (lang === "he" ? "קומה 5 מלאה · נוף פתוח לים" : "Full 5th Floor · Direct Sea View")
+                  : (lang === "he" ? "דירת יוקרה · התאמה אישית" : "Luxury Residence · Bespoke Layout")}
+              </span>
               <img src={residenceImages[index]} alt="" />
               <div>
                 <h3>{home.name}</h3>
                 <p>{home.kind}</p>
-                <span>{text.ui.openHome}</span>
+                <span>{text.ui.openHome} ←</span>
               </div>
             </Link>
           ))}
         </div>
       </section>
+
+      <div className="mobile-floating-bar">
+        <a className="floating-call-btn" href="tel:+972543600082" aria-label="Call 054-360-0082">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+          <span>054-360-0082</span>
+        </a>
+        <Link className="floating-inquire-btn" to={`/${lang}/visit`}>
+          <span>{text.inquire}</span>
+        </Link>
+      </div>
     </Shell>
   );
 }
@@ -230,7 +377,7 @@ function BuildingPage({ lang }: { lang: Lang }) {
         </div>
         <figure className="story-photo reveal">
           <img src="/media/lobby.jpg" alt={text.gallery.captions[3]} />
-          <figcaption>{text.office}</figcaption>
+          <figcaption>{text.gallery.captions[3]}</figcaption>
         </figure>
       </section>
       <section className="offer">
@@ -322,7 +469,23 @@ function ResidencePage({ lang }: { lang: Lang }) {
           <p className="plans-note">
             {text.homes.plansNote} <Link to={`/${lang}/visit`}>{text.homes.request}</Link>
           </p>
-          <AgentCard lang={lang} />
+          <div className="residence-vip-inquiry">
+            <div className="inquiry-text">
+              <h4>{lang === "he" ? "מעוניינים בתיאום ביקור פרטי?" : "Interested in a Private Viewing?"}</h4>
+              <p>{lang === "he" ? "חוברת הפרויקט, תוכניות אדריכליות ומחיר נמסרים בפנייה ישירה ודיסקרטית." : "Full plans, technical specifications, and pricing are shared in discreet private consultation."}</p>
+            </div>
+            <div className="inquiry-btns">
+              <Link className="btn-inquire" to={`/${lang}/visit`}>
+                {text.inquire}
+              </Link>
+              <a className="btn-call" href="tel:+972543600082">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+                <span>054-360-0082</span>
+              </a>
+            </div>
+          </div>
         </div>
         <figure className="reveal">
           <img src={frames[(index + 3) % frames.length].src} alt={text.gallery.captions[(index + 3) % frames.length]} />
@@ -343,9 +506,49 @@ function ResidencePage({ lang }: { lang: Lang }) {
   );
 }
 
+const galleryCategoryLabels: Record<Lang, Record<GalleryCategory, string>> = {
+  he: {
+    all: "כל התמונות",
+    outdoor: "מרפסות, דק ובריכה",
+    living: "חללי אירוח וסלון",
+    interior: "אדריכלות, לובי ומטבח",
+  },
+  en: {
+    all: "All Photographs",
+    outdoor: "Terraces, Deck & Pool",
+    living: "Living & Salons",
+    interior: "Architecture & Lobby",
+  },
+  fr: {
+    all: "Toutes les photos",
+    outdoor: "Terrasses, Deck & Piscine",
+    living: "Séjours & Salons",
+    interior: "Architecture & Hall",
+  },
+  ru: {
+    all: "Все фотографии",
+    outdoor: "Террасы, дек и бассейн",
+    living: "Гостиные и залы",
+    interior: "Архитектура и лобби",
+  },
+};
+
 function GalleryPage({ lang }: { lang: Lang }) {
   const text = copy[lang];
   const [frame, setFrame] = useState<number | null>(null);
+  const [category, setCategory] = useState<GalleryCategory>("all");
+  const [layoutMode, setLayoutMode] = useState<"mosaic" | "grid">("mosaic");
+
+  const categories: { id: GalleryCategory; label: string }[] = [
+    { id: "all", label: galleryCategoryLabels[lang].all },
+    { id: "outdoor", label: galleryCategoryLabels[lang].outdoor },
+    { id: "living", label: galleryCategoryLabels[lang].living },
+    { id: "interior", label: galleryCategoryLabels[lang].interior },
+  ];
+
+  const filteredItems = frames
+    .map((item, index) => ({ item, index }))
+    .filter(({ item }) => category === "all" || item.category === category);
 
   useEffect(() => {
     if (frame === null) return;
@@ -365,47 +568,156 @@ function GalleryPage({ lang }: { lang: Lang }) {
   return (
     <Shell lang={lang} title={`${text.nav.gallery} · ${text.hero.title}`}>
       <PageHero image="/media/pool-sky.jpg" kicker={text.gallery.eyebrow} title={text.gallery.title} alt={text.gallery.captions[10]} />
-      <section className="gallery">
-        <div className="mosaic">
-          {frames.map((item, index) => (
-            <button key={item.src} type="button" className={`shot ${item.layout}`} onClick={() => setFrame(index)}>
-              <img src={item.src} alt={text.gallery.captions[index]} />
-              <span>{text.gallery.captions[index]}</span>
+      
+      <section className="gallery-page">
+        <div className="gallery-toolbar reveal">
+          <div className="gallery-filters" role="tablist">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                className={`filter-btn ${category === cat.id ? "active" : ""}`}
+                onClick={() => setCategory(cat.id)}
+              >
+                <span>{cat.label}</span>
+                <span className="count-pill">
+                  {cat.id === "all" ? frames.length : frames.filter((f) => f.category === cat.id).length}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div className="gallery-view-options">
+            <span className="gallery-count-badge">
+              {lang === "he" ? `${filteredItems.length} תצלומים מתוך הנכס` : `${filteredItems.length} Exclusive Photographs`}
+            </span>
+            <div className="gallery-layout-toggle" role="group">
+              <button
+                type="button"
+                className={layoutMode === "mosaic" ? "on" : ""}
+                onClick={() => setLayoutMode("mosaic")}
+                title={lang === "he" ? "פסיפס אדריכלי" : "Mosaic layout"}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="7" height="18" rx="1" />
+                  <rect x="14" y="3" width="7" height="8" rx="1" />
+                  <rect x="14" y="13" width="7" height="8" rx="1" />
+                </svg>
+                <span>{lang === "he" ? "פסיפס" : "Mosaic"}</span>
+              </button>
+              <button
+                type="button"
+                className={layoutMode === "grid" ? "on" : ""}
+                onClick={() => setLayoutMode("grid")}
+                title={lang === "he" ? "גריד אחיד" : "Uniform grid"}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="7" height="8" rx="1" />
+                  <rect x="14" y="3" width="7" height="8" rx="1" />
+                  <rect x="3" y="13" width="7" height="8" rx="1" />
+                  <rect x="14" y="13" width="7" height="8" rx="1" />
+                </svg>
+                <span>{lang === "he" ? "גריד" : "Grid"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className={`gallery-container ${layoutMode}`}>
+          {filteredItems.map(({ item, index }) => (
+            <button
+              key={item.src}
+              type="button"
+              className={`gallery-card ${layoutMode === "mosaic" ? item.layout : "uniform"} reveal`}
+              onClick={() => setFrame(index)}
+            >
+              <img src={item.src} alt={text.gallery.captions[index]} loading="lazy" />
+              <div className="card-overlay">
+                <div className="overlay-top">
+                  <span className="expand-badge">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 3 21 3 21 9" />
+                      <polyline points="9 21 3 21 3 15" />
+                      <line x1="21" y1="3" x2="14" y2="10" />
+                      <line x1="3" y1="21" x2="10" y2="14" />
+                    </svg>
+                    <span>{text.gallery.open}</span>
+                  </span>
+                </div>
+                <div className="overlay-bottom">
+                  <span className="photo-num">0{index + 1}</span>
+                  <p className="photo-caption">{text.gallery.captions[index]}</p>
+                </div>
+              </div>
             </button>
           ))}
         </div>
       </section>
+
       <Continue lang={lang} to="location" label={text.nav.place} />
+
       {frame !== null ? (
         <dialog className="lightbox" open>
-          <button className="lightbox-close" type="button" onClick={() => setFrame(null)}>
-            {text.close}
-          </button>
-          <button
-            className="lightbox-nav prev"
-            type="button"
-            onClick={() => setFrame((current) => (current === null ? current : (current + frames.length - 1) % frames.length))}
-            aria-label={text.gallery.open}
-          >
-            ‹
-          </button>
-          <figure>
-            <img src={frames[frame].src} alt={text.gallery.captions[frame]} />
-            <figcaption>
-              {text.gallery.captions[frame]}
-              <span>
-                {frame + 1} / {frames.length}
-              </span>
-            </figcaption>
-          </figure>
-          <button
-            className="lightbox-nav next"
-            type="button"
-            onClick={() => setFrame((current) => (current === null ? current : (current + 1) % frames.length))}
-            aria-label={text.gallery.open}
-          >
-            ›
-          </button>
+          <div className="lightbox-header">
+            <div className="lightbox-info">
+              <strong>{String(frame + 1).padStart(2, "0")} / {String(frames.length).padStart(2, "0")}</strong>
+              <span>· {text.hero.title} · TLV</span>
+            </div>
+            <div className="lightbox-actions">
+              <Link className="lightbox-cta" to={`/${lang}/visit`} onClick={() => setFrame(null)}>
+                {text.inquire}
+              </Link>
+              <button
+                className="lightbox-close"
+                type="button"
+                onClick={() => setFrame(null)}
+                aria-label={text.close}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div className="lightbox-body">
+            <button
+              className="lightbox-nav prev"
+              type="button"
+              onClick={() => setFrame((current) => (current === null ? current : (current + frames.length - 1) % frames.length))}
+              aria-label={text.gallery.open}
+            >
+              ‹
+            </button>
+            <figure className="lightbox-figure">
+              <img src={frames[frame].src} alt={text.gallery.captions[frame]} />
+              <figcaption>
+                <h4>{text.gallery.captions[frame]}</h4>
+              </figcaption>
+            </figure>
+            <button
+              className="lightbox-nav next"
+              type="button"
+              onClick={() => setFrame((current) => (current === null ? current : (current + 1) % frames.length))}
+              aria-label={text.gallery.open}
+            >
+              ›
+            </button>
+          </div>
+
+          <div className="lightbox-thumbnails-bar">
+            {frames.map((item, idx) => (
+              <button
+                key={item.src}
+                type="button"
+                className={`thumb-btn ${idx === frame ? "active" : ""}`}
+                onClick={() => setFrame(idx)}
+              >
+                <img src={item.src} alt="" />
+              </button>
+            ))}
+          </div>
         </dialog>
       ) : null}
     </Shell>
